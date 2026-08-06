@@ -1,0 +1,52 @@
+---
+description: Document feature changes in docs/ when updating routes, server functions, or data-access
+globs: src/routes/**/*,src/fn/**/*,src/data-access/**/*
+alwaysApply: false
+---
+
+# Feature Documentation (`docs/`)
+
+When creating or updating a feature in routes, `src/fn`, or `src/data-access`, keep `docs/` in sync in the same change.
+
+## What to document
+
+- Purpose of the feature and when a user encounters it
+- Routes / entry points involved
+- Server functions and data-access calls (inputs, auth requirements, side effects)
+- Important security or ownership rules (who can call what)
+- Env vars, migrations, or setup steps if any
+
+## Where to put it
+
+- **Update an existing doc** when the topic already fits (e.g. auth → `docs/authentication.md`, uploads → `docs/file-uploads.md`, architecture layers → `docs/architecture.md`).
+- **Add a new `docs/<feature-name>.md`** when there is no clear home — use lowercase kebab-case filenames.
+- Cross-link from related docs when helpful; do not duplicate long explanations across files.
+
+## How to write it
+
+- Keep docs actionable and short: what it does, how it works, how to use/test it.
+- Prefer concrete paths and function names over vague descriptions.
+- Do not invent behavior — document what the code actually does.
+
+```markdown
+<!-- ❌ BAD — vague, no pointers -->
+
+## Profiles
+
+Users can update profiles somehow.
+
+<!-- ✅ GOOD -->
+
+## Profile updates
+
+- Route: `src/routes/dashboard/settings.tsx`
+- Server fn: `updateUserProfileFn` (`src/fn/storage.ts`) — requires `authenticatedMiddleware`
+- Updates only the session user’s row via data-access
+```
+
+## Checklist
+
+1. Did this change introduce or alter user-facing or API behavior?
+2. Is there an existing `docs/*.md` to update, or do we need a new file?
+3. Are routes, server fns, and auth/ownership called out with real paths/names?
+4. Would another engineer know how to find and safely change this feature from the doc alone?

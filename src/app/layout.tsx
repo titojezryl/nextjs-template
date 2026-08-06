@@ -1,0 +1,41 @@
+import type { Metadata } from "next";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+
+import "./globals.css";
+
+const display = Space_Grotesk({
+  variable: "--font-display",
+  subsets: ["latin"],
+});
+
+const body = IBM_Plex_Sans({
+  variable: "--font-body",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "Next.js Template",
+    template: "%s · Next.js Template",
+  },
+  description:
+    "Lightweight Next.js starter with Better Auth, Drizzle, Postgres, roles, and an audit trail.",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="en"
+      className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  );
+}
