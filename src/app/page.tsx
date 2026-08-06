@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SiteHeaderNav } from "@/components/site-header-nav";
 import { Button } from "@/components/ui/button";
 import { getSession } from "@/lib/require-admin";
 
@@ -53,6 +54,8 @@ const steps = [
 
 export default async function HomePage() {
   const session = await getSession();
+  const isAdmin = session?.user.role === "admin";
+  const isUser = Boolean(session) && !isAdmin;
 
   return (
     <main className="flex flex-1 flex-col">
@@ -64,31 +67,13 @@ export default async function HomePage() {
         >
           Next.js Template
         </Link>
-        <nav className="flex items-center gap-2" aria-label="Primary">
-          {session ? (
-            <>
-              {session.user.role === "admin" ? (
-                <Button asChild variant="ghost">
-                  <Link href="/users">Users</Link>
-                </Button>
-              ) : null}
-              <Button asChild>
-                <Link href={session.user.role === "admin" ? "/users" : "/"}>
-                  Dashboard
-                </Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button asChild variant="ghost">
-                <Link href="/login">Sign in</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup">Get started</Link>
-              </Button>
-            </>
-          )}
-        </nav>
+        <SiteHeaderNav
+          user={
+            session
+              ? { name: session.user.name, role: session.user.role }
+              : null
+          }
+        />
       </header>
 
       <section className="relative mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-6 pb-20 pt-8 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24 lg:pt-12">
@@ -104,32 +89,37 @@ export default async function HomePage() {
             built for developers who want to ship, not scaffold.
           </p>
           <div className="mt-8 flex flex-wrap gap-3 animate-rise [animation-delay:240ms]">
-            <Button asChild size="lg">
-              <Link
-                href={
-                  session?.user.role === "admin"
-                    ? "/users"
-                    : session
-                      ? "/"
-                      : "/signup"
-                }
-              >
-                {session?.user.role === "admin"
-                  ? "Open users"
-                  : session
-                    ? "You are signed in"
-                    : "Create an account"}
-              </Link>
-            </Button>
             {!session ? (
-              <Button asChild size="lg" variant="outline">
-                <Link href="/login">Sign in with Google or email</Link>
-              </Button>
-            ) : (
-              <Button asChild size="lg" variant="outline">
-                <Link href="/audit">View audit trail</Link>
-              </Button>
-            )}
+              <>
+                <Button asChild size="lg">
+                  <Link href="/signup">Create an account</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/login">Sign in with Google or email</Link>
+                </Button>
+              </>
+            ) : null}
+
+            {isAdmin ? (
+              <>
+                <Button asChild size="lg">
+                  <Link href="/users">Open users</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/audit">View audit trail</Link>
+                </Button>
+              </>
+            ) : null}
+
+            {isUser ? (
+              <p className="flex items-center text-sm text-muted-foreground">
+                Signed in as{" "}
+                <span className="ml-1 font-medium text-foreground">
+                  {session?.user.name.trim().split(/\s+/)[0] || "member"}
+                </span>
+                . Admin tools stay behind the admin role.
+              </p>
+            ) : null}
           </div>
           <ul className="mt-10 flex flex-wrap gap-2 animate-rise [animation-delay:320ms]">
             {stack.map((item) => (
@@ -262,12 +252,22 @@ export default async function HomePage() {
               Full setup, Google OAuth, and the production checklist live in the
               README.
             </p>
-            <Button
-              asChild
-              className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              <Link href="/signup">Spin up an account</Link>
-            </Button>
+            {!session ? (
+              <Button
+                asChild
+                className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                <Link href="/signup">Spin up an account</Link>
+              </Button>
+            ) : null}
+            {isAdmin ? (
+              <Button
+                asChild
+                className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                <Link href="/users">Open admin dashboard</Link>
+              </Button>
+            ) : null}
           </div>
           <ol className="space-y-4">
             {steps.map((step) => (

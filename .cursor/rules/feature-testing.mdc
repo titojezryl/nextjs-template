@@ -66,6 +66,16 @@ Brief description of the feature and where to find it (route, page, component).
 - [ ] Auth or role restrictions (if applicable)
 - [ ] Edge cases (empty states, loading, mobile vs desktop if relevant)
 
+## Same-change requirements
+
+Creating or updating a feature is incomplete without:
+
+1. Updated feature doc under `docs/`
+2. This QA file under `docs/qa/`
+3. Clean `pnpm verify` (`typecheck`, `lint`, `test`, `build`)
+
+See `.cursor/rules/feature-completion.mdc` and the **feature-workflow** skill.
+
 ## Example
 
 Feature: campaign creation form → `docs/qa/create-campaign.test-cases.md`

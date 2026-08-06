@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test src/lib/audit.test.ts",
+    "typecheck": "tsc --noEmit",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",

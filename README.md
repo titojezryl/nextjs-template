@@ -75,7 +75,9 @@ Until those are set, the Google button still appears on login/signup and explain
 | `pnpm dev` | Dev server |
 | `pnpm build` / `pnpm start` | Production build and serve |
 | `pnpm lint` | ESLint |
+| `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm test` | Audit path-mapping unit checks (`node:test`) |
+| `pnpm verify` | typecheck + lint + test + build (required after feature work) |
 | `pnpm db:generate` | Generate SQL from Drizzle schema |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:push` | Push schema (dev only — never production) |
@@ -166,3 +168,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
 ## QA
 
 Manual test cases live in [`docs/qa/`](docs/qa/).
+
+Feature and architecture docs live in [`docs/`](docs/) — start at [`docs/README.md`](docs/README.md).
