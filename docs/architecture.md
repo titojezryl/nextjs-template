@@ -2,28 +2,46 @@
 
 ## Purpose
 
-Lightweight Next.js starter for authenticated products: public landing, Better Auth (email + optional Google SSO), admin user management, and an audit trail on Drizzle + Postgres.
+Complete-but-deletable Next.js base app: auth, app shell, admin, S3 files,
+Stripe commerce, notifications, and analytics — on Drizzle + Postgres.
 
 ## High-level layout
 
 ```
-src/app/                 App Router pages & API
-  (auth)/                login, signup, forgot/reset password
-  (dashboard)/           admin shell (side nav): users, audit
-  api/auth/[...all]/    Better Auth HTTP handler
-src/components/          UI + feature components
-src/lib/                 auth, env, mail, audit, session guards
-src/db/                  Drizzle client + schema
-src/proxy.ts             Optimistic cookie redirect (not authz)
-drizzle/                 SQL migrations
-docs/                    Feature docs + QA cases
+src/app/
+  (auth)/           login, signup, forgot/reset password
+  (app)/            signed-in shell: dashboard, shop, cart, orders, settings, notifications
+  (admin)/          admin shell: /admin, /users, /audit, products, orders, analytics
+  api/auth/         Better Auth
+  api/stripe/       Stripe webhook
+  api/events/       analytics ingest
+src/features/       deletable modules (account, files, commerce, notifications, analytics)
+src/components/     UI + shell + analytics widgets
+src/lib/            auth, env, mail, storage, stripe, notify, analytics
+src/db/schema/      one file per module
+src/proxy.ts        optimistic cookie redirects
+drizzle/            SQL migrations
+docs/               feature docs + QA
 ```
+
+## Module map
+
+| Module | Folder / schema | Delete by removing |
+| --- | --- | --- |
+| App shell | `features/account`, `(app)` | routes + account feature + shell components |
+| Admin | `(admin)/users`, audit | keep if you still need roles |
+| Files | `features/files`, `schema/file.ts`, `lib/storage*` | S3 deps + avatar UI |
+| Commerce | `features/commerce`, `schema/commerce.ts` | shop/cart/orders + Stripe webhook |
+| Notifications | `features/notifications`, `schema/notification.ts` | bell + notify emitters |
+| Analytics | `features/analytics`, `schema/analytics.ts` | tracker + `/admin/analytics` + GA |
+
+Each feature doc ends with a **Removing this module** section.
 
 ## Request flow
 
 ```mermaid
 flowchart TD
-  Browser --> Proxy["proxy.ts cookie check on /users /audit"]
+  Browser --> Proxy["proxy.ts cookie check"]
   Proxy --> Page["App Router page / server action"]
   Page --> Guard["requireSession / requireAdmin"]
   Guard --> AuthApi["auth.api.* or Drizzle"]
@@ -37,30 +55,29 @@ flowchart TD
 
 | Layer | Responsibility | Examples |
 | --- | --- | --- |
-| UI | Present data, collect input, role-gated CTAs (UX only) | `src/app/page.tsx`, `users-table.tsx` |
-| Server actions / pages | Validate input, enforce session/role, call auth or DB | `users/actions.ts`, dashboard pages |
-| Auth | Sessions, passwords, OAuth, admin plugin | `src/lib/auth.ts`, `auth-client.ts` |
-| Data | Schema + queries | `src/db/schema/*`, audit page Drizzle selects |
-| Cross-cutting | Env validation, mail, audit mapping | `env.ts`, `mail.ts`, `audit.ts` |
-
-There is **no** `src/fn` or `src/data-access` package. Prefer colocated server actions and thin `lib/` helpers.
+| UI | Present data, collect input | pages, feature components |
+| Server actions / pages | Validate, enforce session/role | `features/*/actions.ts` |
+| Auth | Sessions, passwords, OAuth, admin plugin | `src/lib/auth.ts` |
+| Data | Schema + queries | `src/db/schema/*` |
+| Cross-cutting | Env, mail, storage, stripe, analytics | `src/lib/*` |
 
 ## Auth & authorization model
 
-1. **Session** — Better Auth session cookie; read via `auth.api.getSession` in `getSession()`.
-2. **Roles** — `user.role` is `user` or `admin`. First admins come from `ADMIN_EMAILS` on user create (`databaseHooks.user.create.before`).
-3. **Page guards** — `requireAdmin()` on `(dashboard)` layout and again in actions.
-4. **Plugin enforcement** — `auth.api.setRole` / `setUserPassword` / `listUsers` / `getUser` go through the Better Auth admin plugin.
-5. **Proxy** — If no session cookie, redirect to `/login`. This is not sufficient alone.
+1. **Session** — Better Auth cookie; `getSession()` / `requireSession()` / `requireAdmin()`
+2. **Roles** — `user` or `admin` (`ADMIN_EMAILS` bootstrap)
+3. **Page guards** — layouts + actions; `proxy.ts` is UX only
+4. **Ownership** — order detail filters by `session.user.id`
 
 ## Data fetching
 
-Default: Server Components + server actions + `revalidatePath`. No React Query unless explicitly required later.
+Server Components + server actions + `revalidatePath`. No React Query by default.
+
+## Feature flags (env)
+
+- `isStorageConfigured` — S3_* complete
+- `isCommerceEnabled` — `STRIPE_SECRET_KEY`
+- `isAnalyticsEnabled` — `NEXT_PUBLIC_GA_MEASUREMENT_ID` (GA script only; first-party events always on)
 
 ## Related docs
 
-- [Authentication](./authentication.md)
-- [User management](./user-management.md)
-- [Audit trail](./audit-trail.md)
-- [Landing & role-gated UI](./landing-and-authorization.md)
-- QA: [docs/qa/](./qa/)
+See [docs/README.md](./README.md).

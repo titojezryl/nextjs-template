@@ -103,22 +103,18 @@ export default async function HomePage() {
             {isAdmin ? (
               <>
                 <Button asChild size="lg">
-                  <Link href="/users">Open users</Link>
+                  <Link href="/dashboard">Open dashboard</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline">
-                  <Link href="/audit">View audit trail</Link>
+                  <Link href="/admin">Admin overview</Link>
                 </Button>
               </>
             ) : null}
 
             {isUser ? (
-              <p className="flex items-center text-sm text-muted-foreground">
-                Signed in as{" "}
-                <span className="ml-1 font-medium text-foreground">
-                  {session?.user.name.trim().split(/\s+/)[0] || "member"}
-                </span>
-                . Admin tools stay behind the admin role.
-              </p>
+              <Button asChild size="lg">
+                <Link href="/dashboard">Open dashboard</Link>
+              </Button>
             ) : null}
           </div>
           <ul className="mt-10 flex flex-wrap gap-2 animate-rise [animation-delay:320ms]">
@@ -215,6 +211,8 @@ export default async function HomePage() {
                 ["/", "Landing + stack overview", "Public"],
                 ["/login · /signup", "Email auth + Google SSO", "Public"],
                 ["/forgot-password", "Self-serve reset link", "Public"],
+                ["/dashboard", "Signed-in home", "Session"],
+                ["/settings/*", "Profile and password", "Session"],
                 ["/users", "User list", "Admin"],
                 ["/users/[id]", "Change role · reset password", "Admin"],
                 ["/audit", "Filterable event history", "Admin"],
@@ -265,7 +263,7 @@ export default async function HomePage() {
                 asChild
                 className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90"
               >
-                <Link href="/users">Open admin dashboard</Link>
+                <Link href="/admin">Open admin overview</Link>
               </Button>
             ) : null}
           </div>

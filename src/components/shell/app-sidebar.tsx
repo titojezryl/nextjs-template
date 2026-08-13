@@ -9,20 +9,45 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
-interface DashboardSidebarProps {
-  userName: string;
-  userEmail: string;
+export interface AppSidebarNavItem {
+  href: string;
+  label: string;
+  /** Path prefix used for active state. Defaults to `href`. */
+  matchPath?: string;
+  /** When true, only an exact path match is active (e.g. `/admin`). */
+  exact?: boolean;
 }
 
-const navItems = [
-  { href: "/users", label: "Users", match: (path: string) => path.startsWith("/users") },
-  { href: "/audit", label: "Audit", match: (path: string) => path.startsWith("/audit") },
-];
+interface AppSidebarProps {
+  userName: string;
+  userEmail: string;
+  sectionLabel: string;
+  navItems: AppSidebarNavItem[];
+  navAriaLabel?: string;
+  sidebarId?: string;
+  headerAction?: React.ReactNode;
+}
 
-export const DashboardSidebar = ({
+const isNavItemActive = (
+  pathname: string,
+  item: AppSidebarNavItem,
+) => {
+  const matchPath = item.matchPath ?? item.href;
+  if (item.exact) {
+    return pathname === matchPath;
+  }
+  return pathname === matchPath || pathname.startsWith(`${matchPath}/`);
+};
+
+export const AppSidebar = ({
   userName,
   userEmail,
-}: DashboardSidebarProps) => {
+  sectionLabel,
+  navItems,
+  navAriaLabel = "Primary",
+  sidebarId = "app-sidebar",
+  headerAction,
+}: AppSidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -34,9 +59,9 @@ export const DashboardSidebar = ({
   };
 
   const nav = (
-    <nav className="flex flex-1 flex-col gap-1" aria-label="Admin">
+    <nav className="flex flex-1 flex-col gap-1" aria-label={navAriaLabel}>
       {navItems.map((item) => {
-        const isActive = item.match(pathname);
+        const isActive = isNavItemActive(pathname, item);
         return (
           <Link
             key={item.href}
@@ -72,7 +97,7 @@ export const DashboardSidebar = ({
           size="icon"
           onClick={() => setIsOpen((open) => !open)}
           aria-expanded={isOpen}
-          aria-controls="admin-sidebar"
+          aria-controls={sidebarId}
           aria-label={isOpen ? "Close navigation" : "Open navigation"}
         >
           {isOpen ? (
@@ -93,7 +118,7 @@ export const DashboardSidebar = ({
       ) : null}
 
       <aside
-        id="admin-sidebar"
+        id={sidebarId}
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex h-full min-h-screen w-64 flex-col border-r border-border bg-white px-4 py-5 transition-transform lg:static lg:min-h-screen lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
@@ -107,8 +132,12 @@ export const DashboardSidebar = ({
         </Link>
 
         <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
-          admin
+          {sectionLabel}
         </p>
+
+        {headerAction ? (
+          <div className="mb-3 flex justify-end">{headerAction}</div>
+        ) : null}
 
         {nav}
 

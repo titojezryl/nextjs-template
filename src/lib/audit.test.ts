@@ -34,6 +34,17 @@ describe("resolveAuditAction", () => {
     });
   });
 
+  it("maps ban and unban endpoints", () => {
+    assert.deepEqual(resolveAuditAction("/admin/ban-user"), {
+      action: "user_banned",
+      hasTargetUser: true,
+    });
+    assert.deepEqual(resolveAuditAction("/admin/unban-user"), {
+      action: "user_unbanned",
+      hasTargetUser: true,
+    });
+  });
+
   it("maps self-serve reset endpoints", () => {
     assert.deepEqual(resolveAuditAction("/request-password-reset"), {
       action: "password_reset_requested",

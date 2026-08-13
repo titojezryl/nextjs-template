@@ -16,6 +16,11 @@ export const auditActions = [
   "password_reset_requested",
   "password_reset_self",
   "password_reset_by_admin",
+  "user_banned",
+  "user_unbanned",
+  "order_paid",
+  "product_created",
+  "product_updated",
 ] as const;
 
 export type AuditAction = (typeof auditActions)[number];

@@ -9,8 +9,11 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { resolveAuditAction } from "@/lib/audit";
 import { writeAuditLog } from "@/lib/audit-writer";
+import { track } from "@/lib/analytics";
 import { adminEmails, env, isGoogleAuthEnabled } from "@/lib/env";
+import { welcomeEmail } from "@/lib/emails/templates";
 import { sendResetPasswordEmail } from "@/lib/mail";
+import { notify } from "@/lib/notify";
 
 export const auth = betterAuth({
   appName: "Next.js Template",
@@ -52,6 +55,29 @@ export const auth = betterAuth({
             };
           }
           return { data: user };
+        },
+        after: async (user) => {
+          try {
+            const template = welcomeEmail({ name: user.name });
+            await notify({
+              userId: user.id,
+              type: "welcome",
+              title: "Welcome",
+              body: "Your account is ready.",
+              href: "/dashboard",
+              email: {
+                to: user.email,
+                ...template,
+              },
+            });
+            await track({
+              name: "signup",
+              userId: user.id,
+              props: { email: user.email },
+            });
+          } catch (error) {
+            console.error("[auth] welcome notify failed", error);
+          }
         },
       },
     },
@@ -152,6 +178,14 @@ export const auth = betterAuth({
         ipAddress,
         userAgent,
       });
+
+      if (match.action === "login" && actor?.id) {
+        await track({
+          name: "login",
+          userId: actor.id,
+          props: { path: ctx.path },
+        });
+      }
     }),
   },
   plugins: [

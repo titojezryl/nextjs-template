@@ -1,6 +1,8 @@
 # Next.js Template
 
-A lightweight Next.js starter for authenticated products: landing page, Google SSO + email/password, admin role management, password reset (self-serve and admin-triggered), and an audit trail — on Drizzle ORM and Postgres.
+A complete-but-deletable Next.js base app: landing page, Better Auth (Google SSO +
+email/password), signed-in app shell, admin roles, password reset, audit trail,
+S3 uploads, Stripe shop, notifications, and analytics — on Drizzle ORM and Postgres.
 
 No client-side data-fetching library. Server Components and Server Actions are the default.
 
@@ -16,6 +18,21 @@ No client-side data-fetching library. Server Components and Server Actions are t
 | Tailwind CSS | 4.3 |
 | Zod | 4.4 |
 | Resend | 6.x (optional) |
+| Stripe | 22.x (optional) |
+| AWS S3 SDK | 3.x (optional) |
+
+## Modules (delete what you do not need)
+
+| Module | Routes | Docs |
+| --- | --- | --- |
+| App shell | `/dashboard`, `/settings/*` | [docs/app-shell.md](docs/app-shell.md) |
+| Admin | `/admin`, `/users`, `/audit` | [docs/user-management.md](docs/user-management.md) |
+| Files | avatar uploads | [docs/files.md](docs/files.md) |
+| Commerce | `/shop`, `/cart`, `/orders`, `/admin/products` | [docs/commerce.md](docs/commerce.md) |
+| Notifications | `/notifications` | [docs/notifications.md](docs/notifications.md) |
+| Analytics | `/admin/analytics`, `/api/events`, GA4 | [docs/analytics.md](docs/analytics.md) |
+
+Each feature doc ends with a **Removing this module** checklist.
 
 ## Get your own copy
 
@@ -38,7 +55,7 @@ git remote remove origin
 
 - Node.js 20+ (verified on 24.13)
 - pnpm 11+
-- Docker (for local Postgres)
+- Docker (for local Postgres on host port **5433** — avoids clashing with a native Postgres on 5432)
 
 ## Quick start
 
@@ -51,10 +68,11 @@ npx @better-auth/cli secret
 
 docker compose up -d
 pnpm db:migrate
+pnpm db:seed   # optional sample products + analytics events
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), sign up with an address listed in `ADMIN_EMAILS`, then open `/users` and `/audit`.
+Open [http://localhost:3000](http://localhost:3000), sign up with an address listed in `ADMIN_EMAILS`, then open `/dashboard` and `/admin`.
 
 ## Google OAuth setup
 
@@ -68,6 +86,13 @@ Open [http://localhost:3000](http://localhost:3000), sign up with an address lis
 
 Until those are set, the Google button still appears on login/signup and explains how to configure OAuth when clicked. Email/password works either way.
 
+## Stripe (local)
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+# Put the webhook signing secret in STRIPE_WEBHOOK_SECRET
+```
+
 ## Scripts
 
 | Script | Purpose |
@@ -76,12 +101,13 @@ Until those are set, the Google button still appears on login/signup and explain
 | `pnpm build` / `pnpm start` | Production build and serve |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm test` | Audit path-mapping unit checks (`node:test`) |
+| `pnpm test` | Unit checks under `src/**/*.test.ts` |
 | `pnpm verify` | typecheck + lint + test + build (required after feature work) |
 | `pnpm db:generate` | Generate SQL from Drizzle schema |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:push` | Push schema (dev only — never production) |
 | `pnpm db:studio` | Drizzle Studio |
+| `pnpm db:seed` | Sample products + analytics events |
 | `pnpm auth:generate` | Regenerate Better Auth Drizzle schema |
 
 ## Project structure
@@ -90,11 +116,15 @@ Until those are set, the Google button still appears on login/signup and explain
 src/
   app/
     (auth)/          # login, signup, forgot/reset password
-    (dashboard)/     # side-nav admin: /users, /users/[id], /audit
+    (app)/           # signed-in: dashboard, shop, cart, orders, settings, notifications
+    (admin)/         # admin: /admin, /users, /audit, products, orders, analytics
     api/auth/        # Better Auth handler
-  components/        # UI + feature components
-  db/schema/         # auth + audit tables
-  lib/               # auth, env, mail, audit helpers
+    api/stripe/      # Stripe webhook
+    api/events/      # analytics ingest
+  features/          # account, files, commerce, notifications, analytics
+  components/        # UI + shell + analytics
+  db/schema/         # auth, audit, file, commerce, notification, analytics
+  lib/               # auth, env, mail, storage, stripe, notify, analytics
 proxy.ts             # Next.js 16 optimistic auth redirect
 drizzle/             # SQL migrations
 docs/qa/             # QA test cases
@@ -106,9 +136,9 @@ See [`.env.example`](.env.example) for the source of truth.
 
 **Required:** `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `ADMIN_EMAILS`
 
-**Optional:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`
+**Optional:** Google OAuth, Resend, S3_*, Stripe, `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 
-Without Resend, password-reset links are printed to the server console — fine for local development, not for production.
+Without Resend, password-reset / notification emails are printed to the server console — fine for local development, not for production.
 
 ## Database workflow
 
@@ -123,27 +153,14 @@ Use `db:push` only for throwaway local experiments. Production always uses migra
 
 Default: Server Components for reads, Server Actions for mutations, `revalidatePath` / router refresh after writes. Session on the client comes from Better Auth's `useSession`.
 
-React Query is **not** included. TanStack Query 5 works with Next.js 16, but this template stays lightweight. Add it when you need polling, infinite scroll, shared client caches across many client components, offline/window-focus refetch, or a migration that already uses `useQuery`.
-
-Minimal add-on sketch:
-
-```tsx
-"use client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  const [client] = useState(() => new QueryClient());
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-}
-```
+React Query is **not** included. Add it when you need polling, infinite scroll, or shared client caches.
 
 ## Roles and audit trail
 
 - Default role: `user`
 - Emails in `ADMIN_EMAILS` become `admin` on first sign-up
 - Admins manage users at `/users` and read events at `/audit`
-- Captured actions: `login`, `logout`, `role_changed`, `password_reset_requested`, `password_reset_self`, `password_reset_by_admin`
+- Captured actions include login/logout, role changes, password resets, bans, product/order events
 
 ## Production build checklist
 
@@ -152,12 +169,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
 - [ ] `DATABASE_URL` points at managed Postgres with `sslmode=require`
 - [ ] `pnpm db:migrate` against production (not `db:push`)
 - [ ] `RESEND_API_KEY` set with a verified sending domain
+- [ ] Stripe live keys + webhook endpoint configured
+- [ ] S3 bucket CORS allows browser PUTs from your origin
 - [ ] `ADMIN_EMAILS` narrowed to real admins
 - [ ] `pnpm build`, `pnpm lint`, and `pnpm test` clean
 - [ ] Session cookies confirmed `Secure` / `httpOnly` over HTTPS
 - [ ] Rate limiting considered for auth endpoints
 - [ ] Secrets injected by the host; `.env.local` not deployed from the repo
-- [ ] Retention/backup decision recorded for `audit_log`
+- [ ] Retention/backup decision recorded for `audit_log` and `analytics_event`
 
 ## Deployment notes
 

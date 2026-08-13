@@ -27,14 +27,16 @@ description: >-
 
 ## Admin surfaces
 
-- Side nav layout: `src/app/(dashboard)/layout.tsx`
+- Side nav layout: `src/app/(admin)/layout.tsx`
+- Overview: `/admin`
 - Users list: `/users` → detail `/users/[id]`
-- Mutations: `setUserRole`, `resetUserPassword` in `users/actions.ts`
-- Audit: `/audit` reads `audit_log` via Drizzle; writes come from Better Auth hooks
+- Mutations: `setUserRole`, `resetUserPassword`, `banUser`, `unbanUser` in `users/actions.ts`
+- Audit: `/audit` reads `audit_log` via Drizzle; writes come from Better Auth hooks + commerce
+- Products / orders / analytics under `/admin/*`
 
 ## Audit events
 
-Mapped in `resolveAuditAction` (`src/lib/audit.ts`): login, logout, role_changed, password_reset_requested, password_reset_self, password_reset_by_admin.
+Mapped in `resolveAuditAction` (`src/lib/audit.ts`): login, logout, role_changed, password resets, user_banned, user_unbanned. Explicit writes: order_paid, product_created, product_updated.
 
 ## Landing authorization (UX)
 

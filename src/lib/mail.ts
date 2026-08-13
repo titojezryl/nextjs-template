@@ -35,23 +35,4 @@ export const sendMail = async ({ to, subject, html, text }: SendMailInput) => {
   return data;
 };
 
-export const sendResetPasswordEmail = async ({
-  to,
-  name,
-  url,
-}: {
-  to: string;
-  name: string;
-  url: string;
-}) => {
-  const subject = "Reset your password";
-  const text = `Hi ${name},\n\nReset your password using this link:\n${url}\n\nIf you did not request this, you can ignore this email.`;
-  const html = `
-    <p>Hi ${name},</p>
-    <p>Reset your password using this link:</p>
-    <p><a href="${url}">${url}</a></p>
-    <p>If you did not request this, you can ignore this email.</p>
-  `;
-
-  return sendMail({ to, subject, html, text });
-};
+export { sendResetPasswordEmail } from "@/lib/emails/send-reset-password";

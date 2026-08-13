@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import {
+  banUser,
   resetUserPassword,
   setUserRole,
-} from "@/app/(dashboard)/users/actions";
+  unbanUser,
+} from "@/app/(admin)/users/actions";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,6 +160,114 @@ export const UserPasswordForm = ({
       >
         {isPending ? "Saving…" : "Reset password"}
       </Button>
+    </form>
+  );
+};
+
+interface UserBanFormProps {
+  userId: string;
+  userName: string;
+  isBanned: boolean;
+  isSelf: boolean;
+  banReason?: string | null;
+}
+
+export const UserBanForm = ({
+  userId,
+  userName,
+  isBanned,
+  isSelf,
+  banReason,
+}: UserBanFormProps) => {
+  const router = useRouter();
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const handleBan = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      const result = await banUser({
+        userId,
+        banReason: reason || undefined,
+      });
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setMessage("User banned.");
+      setReason("");
+      router.refresh();
+    });
+  };
+
+  const handleUnban = () => {
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      const result = await unbanUser({ userId });
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setMessage("User unbanned.");
+      router.refresh();
+    });
+  };
+
+  return (
+    <form
+      onSubmit={handleBan}
+      className="space-y-4 rounded-xl border border-border bg-white p-5"
+    >
+      <div>
+        <h2 className="font-display text-lg font-semibold text-ink">
+          Ban status
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {isBanned
+            ? `${userName} is banned${banReason ? `: ${banReason}` : "."}`
+            : `Ban ${userName} from signing in.`}
+        </p>
+      </div>
+
+      {error ? <Alert variant="error">{error}</Alert> : null}
+      {message ? <Alert variant="success">{message}</Alert> : null}
+
+      {isBanned ? (
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isPending || isSelf}
+          onClick={handleUnban}
+        >
+          {isPending ? "Working…" : "Unban user"}
+        </Button>
+      ) : (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="banReason">Reason (optional)</Label>
+            <Input
+              id="banReason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              disabled={isSelf || isPending}
+              aria-label="Ban reason"
+            />
+          </div>
+          <Button type="submit" variant="destructive" disabled={isSelf || isPending}>
+            {isPending ? "Banning…" : "Ban user"}
+          </Button>
+        </>
+      )}
+      {isSelf ? (
+        <p className="text-xs text-muted-foreground">
+          You cannot ban yourself.
+        </p>
+      ) : null}
     </form>
   );
 };

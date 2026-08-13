@@ -25,7 +25,7 @@ Admin user management at `/users` (list) and `/users/[id]` (detail: change role,
 - **Preconditions:** Admin session; at least one user in the list
 - **Steps:**
   1. Click a user name or Open →
-- **Expected result:** Detail page shows profile summary, role form, and password reset form
+- **Expected result:** Detail page shows profile summary, role form, password reset form, and ban form
 
 ### TC-03: Change role from user to admin
 
@@ -94,6 +94,31 @@ Admin user management at `/users` (list) and `/users/[id]` (detail: change role,
   2. On mobile, open Menu, navigate, confirm overlay closes
 - **Expected result:** Active route highlighted; pages load; mobile menu toggles correctly
 
+### TC-11: Ban user
+
+- **Priority:** High
+- **Preconditions:** Admin on another user’s detail page
+- **Steps:**
+  1. Optionally enter a ban reason
+  2. Click Ban user
+- **Expected result:** Success; user shows banned; audit may record `user_banned`
+
+### TC-12: Unban user
+
+- **Priority:** High
+- **Preconditions:** Target user is banned
+- **Steps:**
+  1. Click Unban user
+- **Expected result:** Success; banned flag cleared
+
+### TC-13: Cannot ban self
+
+- **Priority:** Medium
+- **Preconditions:** Admin opens their own detail page
+- **Steps:**
+  1. Inspect ban form
+- **Expected result:** Ban controls disabled with helper text
+
 ## Edge Cases & Error States
 
 - Empty user list still renders empty state
@@ -101,7 +126,6 @@ Admin user management at `/users` (list) and `/users/[id]` (detail: change role,
 
 ## Out of Scope
 
-- Ban / unban flows
 - Impersonation
 - Bulk role updates
 - Create-user form

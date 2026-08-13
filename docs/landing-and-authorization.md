@@ -20,8 +20,8 @@ Anyone hitting `/`.
 | State | Header | Hero CTAs | Quickstart CTA |
 | --- | --- | --- | --- |
 | Guest | Sign in / Get started | Create account / Sign in | Spin up an account |
-| User (`role !== admin`) | Hello, [firstname] / Log out | Signed-in note (no admin links) | Hidden |
-| Admin | Users / Audit / Dashboard / Log out | Open users / View audit trail | Open admin dashboard |
+| User (`role !== admin`) | Hello / Dashboard / Log out | Open dashboard | Hidden |
+| Admin | Hello / Dashboard / Admin / Log out | Open dashboard / Admin overview | Open admin overview |
 
 ## Auth requirements
 

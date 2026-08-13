@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import {
+  UserBanForm,
   UserPasswordForm,
   UserRoleForm,
 } from "@/components/dashboard/user-detail-forms";
@@ -82,6 +83,13 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
           isSelf={user.id === session.user.id}
         />
         <UserPasswordForm userId={user.id} userName={user.name} />
+        <UserBanForm
+          userId={user.id}
+          userName={user.name}
+          isBanned={Boolean(user.banned)}
+          isSelf={user.id === session.user.id}
+          banReason={user.banReason}
+        />
       </div>
     </div>
   );

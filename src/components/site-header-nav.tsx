@@ -43,36 +43,19 @@ export const SiteHeaderNav = ({ user }: SiteHeaderNavProps) => {
   const isAdmin = user.role === "admin";
   const firstName = getFirstName(user.name);
 
-  if (isAdmin) {
-    return (
-      <nav className="flex items-center gap-2" aria-label="Primary">
-        <Button asChild variant="ghost">
-          <Link href="/users">Users</Link>
-        </Button>
-        <Button asChild variant="ghost">
-          <Link href="/audit">Audit</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/users">Dashboard</Link>
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleSignOut}
-          aria-label="Sign out"
-        >
-          Log out
-        </Button>
-      </nav>
-    );
-  }
-
   return (
-    <nav className="flex items-center gap-3" aria-label="Primary">
-      <p className="text-sm text-foreground">
+    <nav className="flex items-center gap-2" aria-label="Primary">
+      <p className="hidden text-sm text-foreground sm:block">
         Hello, <span className="font-medium">{firstName}</span>
       </p>
+      <Button asChild variant="ghost">
+        <Link href="/dashboard">Dashboard</Link>
+      </Button>
+      {isAdmin ? (
+        <Button asChild variant="ghost">
+          <Link href="/admin">Admin</Link>
+        </Button>
+      ) : null}
       <Button
         type="button"
         variant="outline"

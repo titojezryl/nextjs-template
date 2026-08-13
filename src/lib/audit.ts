@@ -41,6 +41,14 @@ export const resolveAuditAction = (path: string): AuditPathMatch | null => {
     return { action: "password_reset_self" };
   }
 
+  if (path === "/admin/ban-user") {
+    return { action: "user_banned", hasTargetUser: true };
+  }
+
+  if (path === "/admin/unban-user") {
+    return { action: "user_unbanned", hasTargetUser: true };
+  }
+
   return null;
 };
 

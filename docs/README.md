@@ -1,23 +1,33 @@
 # Docs index
 
-Project documentation for the Next.js auth template.
+Project documentation for the Next.js modular template.
 
 ## Architecture
 
-- [architecture.md](./architecture.md) — layers, auth model, request flow
+- [architecture.md](./architecture.md) — layers, auth model, module map
 
 ## Features
 
 - [authentication.md](./authentication.md) — login, signup, Google SSO, password reset
-- [user-management.md](./user-management.md) — admin `/users` and `/users/[id]`
-- [audit-trail.md](./audit-trail.md) — audit log writes and `/audit` UI
-- [landing-and-authorization.md](./landing-and-authorization.md) — role-gated landing/header UX
+- [app-shell.md](./app-shell.md) — `/dashboard`, settings, shared sidebar
+- [user-management.md](./user-management.md) — admin `/users`
+- [audit-trail.md](./audit-trail.md) — audit log + `/audit`
+- [files.md](./files.md) — S3 uploads
+- [commerce.md](./commerce.md) — shop, cart, Stripe
+- [notifications.md](./notifications.md) — inbox + email templates
+- [analytics.md](./analytics.md) — events + `/admin/analytics` + GA4
+- [landing-and-authorization.md](./landing-and-authorization.md) — role-gated landing UX
 
 ## QA
 
 - [qa/authentication.test-cases.md](./qa/authentication.test-cases.md)
+- [qa/app-shell.test-cases.md](./qa/app-shell.test-cases.md)
 - [qa/user-management.test-cases.md](./qa/user-management.test-cases.md)
 - [qa/audit-trail.test-cases.md](./qa/audit-trail.test-cases.md)
+- [qa/files.test-cases.md](./qa/files.test-cases.md)
+- [qa/commerce.test-cases.md](./qa/commerce.test-cases.md)
+- [qa/notifications.test-cases.md](./qa/notifications.test-cases.md)
+- [qa/analytics.test-cases.md](./qa/analytics.test-cases.md)
 
 ## Agent workflow
 
